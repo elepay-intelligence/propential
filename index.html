@@ -218,7 +218,7 @@
           <div><span class="k">Est. fee</span><span class="v" id="lcEst">$975</span></div>
           <div><span class="k">P/Mth Fee</span><span class="v" id="lcMfee">$19.50</span></div>
         </div>
-        <p class="sub">Principal &amp; interest, paid fortnightly or monthly; fees shown separately. Indicative only; not a quote, approval or offer. <a href="calculator.html" style="color:var(--champagne);text-decoration:underline">Full calculator →</a></p>
+        <p class="sub">Principal &amp; interest, paid monthly; fees shown separately. Indicative only; not a quote, approval or offer. <a href="calculator.html" style="color:var(--champagne);text-decoration:underline">Full calculator →</a></p>
         <div class="rate-disclosure">
           <p class="rate-disclosure__comp">Comparison rate 21.3% p.a., based on a $30,000 loan over 5 years.</p>
           <p class="rate-disclosure__warn"><b>WARNING:</b> This comparison rate is true only for the examples given and may not include all fees and charges. Different terms, fees or other loan amounts might result in a different comparison rate.</p>
@@ -256,11 +256,10 @@
 (function(){
   var RATE=0.1795;
   function feeBand(a){ if(a<=25000)return{est:975,m:19.50}; if(a<=50000)return{est:1130,m:24.50}; if(a<=75000)return{est:1285,m:29.50}; return{est:1440,m:34.50}; }
-  var freq='monthly';
-  function ppy(){ return freq==='fortnightly'?26:12; }
+  function ppy(){ return 12; }
   function repay(a,y){ var p=ppy(),r=RATE/p,n=y*p; return a*r/(1-Math.pow(1+r,-n)); }
-  function perLabel(){ return freq==='fortnightly'?' / fn':' / mo'; }
-  function freqEyebrow(){ return 'Indicative '+(freq==='fortnightly'?'fortnightly':'monthly')+' repayment'; }
+  function perLabel(){ return ' / mo'; }
+  function freqEyebrow(){ return 'Indicative monthly repayment'; }
   var money0=function(n){return '$'+Math.round(n).toLocaleString('en-AU');};
   var money2=function(n){return '$'+n.toFixed(2);};
   var prefersReduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -355,9 +354,8 @@
       setShow(0); if(!prefersReduce) requestAnimationFrame(sloop);
     }
 
-    /* repayment frequency (shared hero + live calc) */
+    /* shared hero + live calc */
     var heroUpdate=null, liveUpdate=null;
-    freq='monthly';
 
     /* hero combined calc */
     var hA=document.getElementById('hAmount'), hT=document.getElementById('hTerm');
@@ -381,11 +379,6 @@
       liveUpdate=upd; amt.addEventListener('input',upd); term.addEventListener('input',upd); upd();
     }
 
-    /* frequency toggle wiring (syncs hero + live calc) */
-    var freqOpts=document.querySelectorAll('[data-freq-group] .freq-opt');
-    function applyFreqUI(){ Array.prototype.forEach.call(freqOpts,function(b){ b.classList.toggle('is-active', b.getAttribute('data-freq')===freq); }); }
-    Array.prototype.forEach.call(freqOpts,function(b){ b.addEventListener('click',function(){ freq=b.getAttribute('data-freq'); try{ var s=JSON.parse(localStorage.getItem('propential_tweaks')||'{}'); s.calcFreq=freq; localStorage.setItem('propential_tweaks',JSON.stringify(s)); }catch(e){} applyFreqUI(); if(heroUpdate)heroUpdate(); if(liveUpdate)liveUpdate(); }); });
-    applyFreqUI();
   });
 })();
 </script>
