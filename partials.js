@@ -49,7 +49,7 @@
       '<div class="footer__top">' +
         '<div class="footer__brand">' +
           '<span class="wordmark"><span class="prop">Prop</span><span class="ential">ential</span></span>' +
-          '<p>Unlock your property\u2019s true value. A property-secured facility for owners who want to do something with the place they own.</p>' +
+          '<p>Unlock your property\u2019s true value. A property-secured loan for owners who want to do something with the place they own.</p>' +
         '</div>' +
         '<div class="footer__col"><h4>Product</h4><ul>' +
           fcol('how-it-works.html', 'How it works') +

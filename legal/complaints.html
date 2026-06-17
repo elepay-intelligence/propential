@@ -27,23 +27,36 @@
 
 <section class="section" style="padding-top:0">
   <div class="wrap legal-wrap">
-    <div class="legal-summary">
-      <h2>In short</h2>
-      <ul class="legal-points">
-        <li>If something isn’t right, contact us first using the details below. We’ll acknowledge your complaint and aim to resolve it promptly and fairly.</li>
-        <li>If your complaint isn’t resolved to your satisfaction, you can refer it to the Australian Financial Complaints Authority (AFCA), an independent, free service.</li>
-        <li>AFCA: 1800 931 678 · info@afca.org.au · GPO Box 3, Melbourne VIC 3001 · afca.org.au</li>
+    <div class="legal-intro">
+      <p>Please contact Propential to notify us if you are dissatisfied with our services or products.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2 class="legal-h2">How to tell us</h2>
+      <p>You can tell us by:</p>
+      <ul class="legal-detail">
+        <li>Email: <a href="mailto:care@propential.com.au">care@propential.com.au</a></li>
+        <li>Telephone: 1800 012 795</li>
+        <li>In writing to: 264 George Street, Sydney NSW 2000</li>
       </ul>
     </div>
 
-    <div class="notice legal-notice">
-      <strong>This is a working draft.</strong>
-      <p>The full complaints process is being finalised and is subject to legal review before publication. For the complete document, or any questions in the meantime, please contact us using the details below.</p>
+    <div class="legal-section">
+      <h2 class="legal-h2">What happens next</h2>
+      <p>When the complaint is received, Propential staff will try to resolve your complaint immediately. If this is not possible, Propential will tell you who will be handling your complaint, their contact details, and the expected resolution date.</p>
+      <p>We can usually resolve your complaint within 5 business days. If we need to investigate further and thus need more time, we will advise you of the expected resolution date and keep you updated on our progress. During this period further information may be requested from you to assist with our investigation.</p>
     </div>
 
-    <div class="legal-contact">
-      <h2 class="section-title">Contact</h2>
-      <p>MediPay Holdings Pty Limited trading as Propential<br>264 George Street, Sydney NSW 2000<br>ACN 604 221 276 · Australian Credit Licence 474336</p>
+    <div class="legal-section">
+      <h2 class="legal-h2">If you're not satisfied</h2>
+      <p>If you do not agree with our decision or handling of your complaint, or you are unsatisfied with the Propential response, you can contact the Australian Financial Complaints Authority (AFCA) who will complete an independent review of our decision:</p>
+      <ul class="legal-detail">
+        <li>Online: <a href="https://www.afca.org.au" target="_blank" rel="noopener">www.afca.org.au</a></li>
+        <li>Email: <a href="mailto:info@afca.org.au">info@afca.org.au</a></li>
+        <li>Phone: 1800 931 678</li>
+        <li>Mail: Australian Financial Complaints Authority, GPO Box 3, Melbourne VIC 3001</li>
+      </ul>
+      <p>If you are concerned about your financial position and feel that you are in financial hardship, please contact us on the above details. Information on the Propential Financial Hardship policy can be found <a href="hardship.html">here</a>.</p>
     </div>
 
     <a class="arrow-link legal-back" href="../index.html">← Back to home</a>
@@ -58,17 +71,16 @@
 
 <style id="legal-styles">
 .legal-wrap { max-width: 800px; }
-.legal-summary { margin-bottom: 36px; }
-.legal-summary h2 { font-size: 1.4rem; margin-bottom: 18px; }
-.legal-points { list-style: none; display: flex; flex-direction: column; gap: 16px; }
-.legal-points li { position: relative; padding-left: 26px; font-size: 0.9rem; color: var(--text-muted); }
-.legal-points li::before { content: ""; position: absolute; left: 0; top: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--champagne); }
-.legal-notice strong { display:block; color: var(--ivory); margin-bottom: 6px; font-size: 0.95rem; }
-.legal-notice p { font-size: 0.84rem; color: var(--text-muted); }
-.legal-contact { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--line-soft); }
-.legal-contact .section-title { font-size: 1.4rem; margin-bottom: 12px; }
-.legal-contact p { font-size: 0.875rem; color: var(--text-muted); }
-.legal-back { display:inline-flex; margin-top: 36px; }
+.legal-intro p { font-size: 0.95rem; color: var(--ivory); line-height: 1.7; }
+.legal-detail { list-style: none; display: flex; flex-direction: column; gap: 6px; margin: 0; }
+.legal-detail li { font-size: 0.875rem; color: var(--text-muted); }
+.legal-detail a { color: var(--champagne); text-decoration: underline; text-underline-offset: 3px; }
+.legal-section { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--line-soft); }
+.legal-h2 { font-size: clamp(1.3rem, 3vw, 1.7rem); margin-bottom: 16px; }
+.legal-section p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 14px; }
+.legal-section p:last-child { margin-bottom: 0; }
+.legal-section ul + p { margin-top: 14px; }
+.legal-back { display:inline-flex; margin-top: 40px; }
 </style>
 
 </body>
