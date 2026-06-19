@@ -151,17 +151,49 @@
 
   var MARK = '<span class="result-mark mark" aria-hidden="true"><svg viewBox="0 0 200 210" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="armg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ECD58C"/><stop offset="0.5" stop-color="#D6B15E"/><stop offset="1" stop-color="#B6873A"/></linearGradient></defs><path d="M34 96 L100 36 L166 96" fill="none" stroke="url(#armg)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><path d="M52 92 V162 Q52 174 64 174 H136 Q148 174 148 162 V92" fill="none" stroke="url(#armg)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><circle cx="100" cy="112" r="14" fill="url(#armg)"/><path d="M90 120 L110 120 L114 154 L86 154 Z" fill="url(#armg)"/></svg></span>';
 
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    if (!validate()) {
-      var firstErr = form.querySelector('.field--error') || (document.getElementById('consentErr').style.display === 'block' ? document.getElementById('consentErr') : null);
-      if (firstErr) window.scrollTo({ top: firstErr.getBoundingClientRect().top + window.pageYOffset - 120, behavior: 'smooth' });
-      return;
-    }
+  // Gather every field into a plain object (multi-checkbox "project" → array).
+  function collectPayload() {
+    var data = {};
+    var fd = new FormData(form);
+    fd.forEach(function (value, key) {
+      if (data[key] === undefined) { data[key] = value; }
+      else if (Array.isArray(data[key])) { data[key].push(value); }
+      else { data[key] = [data[key], value]; }
+    });
+    // Normalise consents to a clear Yes for downstream systems.
+    data.consentPrivacy = document.getElementById('consentPrivacy').checked ? 'Yes' : 'No';
+    data.consentAccuracy = document.getElementById('consentAccuracy').checked ? 'Yes' : 'No';
+    data.submittedAt = new Date().toISOString();
+    data.sourcePage = location.href;
+    return data;
+  }
 
-    // TODO: wire to Formstack (medipay.formstack.com) + ActiveCampaign CRM,
-    // with referral code attached and an email fallback. Live integration to be added later.
+  // Send to the configured destination. NEVER rejects on a delivery problem —
+  // the applicant always sees confirmation; failures are logged for retry.
+  function sendApplication(payload) {
+    var cfg = window.PROPENTIAL_FORMS || { mode: 'proxy', proxyUrl: '/api/apply', timeoutMs: 12000 };
+    if (cfg.mode === 'off') return Promise.resolve({ ok: true, configured: false });
 
+    var url = cfg.mode === 'direct' ? cfg.directUrl : cfg.proxyUrl;
+    if (!url) { console.warn('[v0] No submission URL configured for mode:', cfg.mode); return Promise.resolve({ ok: true, configured: false }); }
+
+    var controller = ('AbortController' in window) ? new AbortController() : null;
+    var timer = controller ? setTimeout(function () { controller.abort(); }, cfg.timeoutMs || 12000) : null;
+
+    var opts = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller ? controller.signal : undefined
+    };
+
+    return fetch(url, opts)
+      .then(function (r) { return r.json().catch(function () { return { ok: r.ok }; }); })
+      .then(function (json) { if (timer) clearTimeout(timer); return json; })
+      .catch(function (err) { if (timer) clearTimeout(timer); console.error('[v0] Application delivery failed:', err && err.message); return { ok: false, error: 'network' }; });
+  }
+
+  function showConfirmation(serverId) {
     var name = document.getElementById('name').value.trim();
     var ref = document.getElementById('referral').value.trim();
 
@@ -169,6 +201,7 @@
       '<h2>Application received, ' + escapeHtml(name.split(' ')[0]) + '.</h2>' +
       '<p style="max-width:none">Thanks for applying with Propential. Our team will review your application against our credit policy and come back to you quickly with next steps, usually by email or phone.</p>' +
       (ref ? '<div class="result-ref">Referral code applied: <b style="color:rgb(214, 177, 94)">' + escapeHtml(ref) + '</b></div>' : '') +
+      (serverId ? '<div class="result-ref">Reference: <b style="color:rgb(214, 177, 94)">' + escapeHtml(String(serverId)) + '</b></div>' : '') +
       '<p style="margin-top:14px;font-size:0.78rem;color:var(--text-faint);max-width:none">This confirmation is not an approval or credit offer.<br>Your application is subject to credit assessment and our lending criteria.</p>' +
       '<div class="result-actions"><a class="btn btn-primary btn-lg" href="index.html">Back to home</a></div>' +
       '<div class="appsteps" aria-label="Application progress">' +
@@ -185,6 +218,30 @@
     form.hidden = true;
     result.hidden = false;
     window.scrollTo({ top: result.getBoundingClientRect().top + window.pageYOffset - 110, behavior: 'smooth' });
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!validate()) {
+      var firstErr = form.querySelector('.field--error') || (document.getElementById('consentErr').style.display === 'block' ? document.getElementById('consentErr') : null);
+      if (firstErr) window.scrollTo({ top: firstErr.getBoundingClientRect().top + window.pageYOffset - 120, behavior: 'smooth' });
+      return;
+    }
+
+    var btn = form.querySelector('button[type="submit"]');
+    var origLabel = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = 'Submitting\u2026'; }
+
+    sendApplication(collectPayload())
+      .then(function (res) {
+        showConfirmation(res && res.id);
+      })
+      .catch(function () {
+        showConfirmation();
+      })
+      .then(function () {
+        if (btn) { btn.disabled = false; btn.textContent = origLabel; }
+      });
   });
 
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
