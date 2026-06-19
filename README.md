@@ -2,7 +2,7 @@
 
 ## Overview
 Propential is a static, mobile-first marketing + lead-capture website for a property-secured
-consumer loan ($5,000–$100,000, one clear rate 17.95% p.a., secured by caveat or second
+consumer loan ($5,000–$175,000, one clear rate 17.95% p.a., secured by caveat or second
 mortgage). Entity: **MediPay Holdings Pty Limited**, ACN 604 221 276, Australian Credit Licence
 474336. The site comprises marketing pages, an instant eligibility check, a full application
 form, and the required legal/compliance pages.
@@ -72,7 +72,7 @@ term, repayments, early repayment, security); comparison-rate disclosure; **"Wha
 for"** (sits above Fees); fee schedule table (4 bands); "Secured against your property" split.
 
 ### Calculator (`calculator.html`)
-Two-column header → "See what it costs, before you apply." Two sliders (amount $5k–$100k, term)
+Two-column header → "See what it costs, before you apply." Two sliders (amount $5k–$175k, term)
 → indicative **monthly** repayment card with rate/fees + comparison-rate disclosure. Body copy
 runs full width. "Important information" 2-col stack.
 
@@ -82,7 +82,7 @@ the comparison-rate disclosure; fee bands listed as "band: $est establishment, $
 
 ### Check eligibility (`eligibility.html` + `eligibility.js`)
 Two-column header → "See if Propential is a fit." Multi-step form: ownership (radio), state
-(select, with caveat/second-mortgage hint), amount (validated $5k–$100k), **project type
+(select, with caveat/second-mortgage hint), amount (validated $5k–$175k), **project type
 (multi-select checkboxes — "select all that apply")**, security comfort (radio), name/email/
 phone, consent. On submit → client-side validation → branded result ("Good news, …" or a
 not-a-fit message). Answers persisted to `localStorage('propential_elig')` and carried to Apply.
@@ -112,9 +112,10 @@ phone numbers are auto-linkified by `site.js`.
 
 ## Interactions & behaviour
 - **Calculators** (home hero, home live, calculator page): amortising monthly repayment at
-  17.95% p.a.; `payment = amount · r/(1−(1+r)^−n)`, `r = 0.1795/12`, `n = years·12`. Fee bands:
-  ≤$25k → $975 / $19.50; ≤$50k → $1,130 / $24.50; ≤$75k → $1,285 / $29.50; ≤$100k → $1,440 /
-  $34.50. Term cap: 7 yrs ≤$50k, 10 yrs above. Amount/term persisted to
+  17.95% p.a.; `payment = amount · r/(1−(1+r)^−n)`, `r = 0.1795/12`, `n = years·12`. Fee bands
+  (establishment / monthly): ≤$25k → $975 / $19.50; ≤$50k → $1,130 / $24.50; ≤$75k → $1,285 /
+  $29.50; ≤$100k → $1,440 / $34.50; ≤$125k → $1,595 / $39.50; ≤$150k → $1,750 / $44.50; ≤$175k →
+  $1,905 / $49.50. Term cap: 7 yrs ≤$50k, 10 yrs above. Amount/term persisted to
   `localStorage('propential_tweaks')`. **Monthly only** — no frequency toggle.
 - **Comparison rate** is a fixed representative example (NOT slider-driven): "Comparison rate
   21.3% p.a., based on a $30,000 loan over 5 years." shown with the verbatim `WARNING:` block at
@@ -187,7 +188,6 @@ phone numbers are auto-linkified by `site.js`.
 - Scripts: `partials.js`, `site.js`, `home-v2.js`, `calculator.js`, `eligibility.js`,
   `apply.js`, `address-autocomplete.js`
 - `assets/` — logo + imagery
-- `CHANGELOG-R5.md` — the latest round of changes, as spec/checklist
 
 ## Deploy
 No build step. Repo root = this folder. Vercel: New Project → Import → preset **Other**, no
