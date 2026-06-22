@@ -172,13 +172,40 @@ phone numbers are auto-linkified by `site.js`.
   `assets/v3/` (project/lifestyle imagery referenced by the home carousel & feature blocks).
   The nav/footer/result marks are inline SVG in `partials.js` / form JS.
 
-## Integrations / TODO (not wired)
-- **Form submission**: `eligibility.js` and `apply.js` contain
-  `TODO: wire to Formstack (medipay.formstack.com) + ActiveCampaign CRM` — connect with the
-  referral code attached and an email fallback. Currently render a success state only.
+## Backend — apply.html → Formstack (Neon + Drizzle)
+
+`apply.html` posts to a thin Vercel serverless backend that stores each application
+in Neon Postgres, then pushes it to the encrypted Formstack "Reno Now" application
+form (`FORMSTACK_FORM_ID`). Direct-submit flow: the applicant always sees success
+once the lead is stored; Formstack failures are recorded on the row
+(`status="failed"`) for retry, not shown to the user. (`eligibility.html` is not
+wired to Formstack.)
+
+**Layout**
+- `db/` — Drizzle schema (`submissions` table), Neon client, migrations.
+- `lib/formstack.ts` — Formstack v2025 client (encrypted-form payload + backoff).
+- `lib/apply-mapping.ts` — request Zod schema + `FIELD_IDS` map + payload builder.
+- `api/submit-apply.ts` — POST route (validate → store → push → record status).
+- `scripts/fetch-formstack-fields.mjs` — dumps Formstack field ids.
+
+**Env vars** (Vercel Prod+Preview; `.env.local` for local via `vercel env pull`):
+`DATABASE_URL` (Neon integration), `FORMSTACK_API_TOKEN`, `FORMSTACK_FORM_ID`,
+`FORMSTACK_USER_FORM_ENCRYPTION_PASSWORD`. See `.env.example`.
+
+**Setup / scripts**
+1. Provision Neon (Vercel Marketplace) → injects `DATABASE_URL`.
+2. `vercel env pull .env.local` then `npm run db:migrate` (creates `submissions`).
+3. `npm run formstack:fields` → paste real field ids into `lib/apply-mapping.ts`
+   `FIELD_IDS` (empty ids are skipped + logged until filled).
+4. `npm run typecheck` / `npm run db:studio` to verify.
+
+### Other integrations / TODO
+- **Field ids**: `lib/apply-mapping.ts` `FIELD_IDS` are placeholders until
+  `npm run formstack:fields` is run and pasted in.
 - **Address autocomplete**: supply a Google Maps Platform key (Places API, billing enabled) via
   `<meta name="google-maps-key" content="…">` or `window.PROPENTIAL_MAPS_KEY`.
-- **Referral-code crediting**: capture exists; align crediting with the referrer arrangement.
+- **Referral-code crediting**: capture exists (`?ref=`/`?partner=` → partner code field);
+  align crediting with the referrer arrangement.
 
 ## Files in this bundle
 - Pages: `index.html`, `how-it-works.html`, `product.html`, `calculator.html`, `faqs.html`,

@@ -2,14 +2,31 @@
   "name": "propential",
   "version": "1.0.0",
   "private": true,
-  "description": "Propential — static property-secured loan marketing & lead-capture site (no build step)",
+  "description": "Propential — static property-secured loan marketing & lead-capture site, with a thin Vercel serverless backend for Formstack submissions (Neon Postgres + Drizzle).",
   "scripts": {
     "dev": "serve . -l 3000",
     "start": "serve . -l 3000",
     "deploy": "vercel deploy",
-    "deploy:prod": "vercel deploy --prod"
+    "deploy:prod": "vercel deploy --prod",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "formstack:fields": "node scripts/fetch-formstack-fields.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "drizzle-orm": "^0.38.3",
+    "drizzle-zod": "^0.6.1",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
-    "serve": "^14.2.4"
+    "@types/node": "^22.10.5",
+    "@vercel/node": "^5.0.0",
+    "dotenv": "^16.4.7",
+    "drizzle-kit": "^0.30.1",
+    "serve": "^14.2.4",
+    "typescript": "^5.7.2"
   }
 }

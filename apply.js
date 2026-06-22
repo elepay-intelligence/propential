@@ -18,6 +18,15 @@
     if (ref) document.getElementById('referral').value = ref;
   } catch (e) {}
 
+  // Campaign tracking (utm_source / utm_medium / utm_campaign) for Formstack.
+  var utm = { source: '', medium: '', campaign: '' };
+  try {
+    var uparams = new URLSearchParams(location.search);
+    utm.source = uparams.get('utm_source') || '';
+    utm.medium = uparams.get('utm_medium') || '';
+    utm.campaign = uparams.get('utm_campaign') || '';
+  } catch (e) {}
+
   // Prefill from the eligibility step, if completed
   try {
     var elig = JSON.parse(localStorage.getItem('propential_elig') || 'null');
@@ -151,17 +160,7 @@
 
   var MARK = '<span class="result-mark mark" aria-hidden="true"><svg viewBox="0 0 200 210" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="armg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ECD58C"/><stop offset="0.5" stop-color="#D6B15E"/><stop offset="1" stop-color="#B6873A"/></linearGradient></defs><path d="M34 96 L100 36 L166 96" fill="none" stroke="url(#armg)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><path d="M52 92 V162 Q52 174 64 174 H136 Q148 174 148 162 V92" fill="none" stroke="url(#armg)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><circle cx="100" cy="112" r="14" fill="url(#armg)"/><path d="M90 120 L110 120 L114 154 L86 154 Z" fill="url(#armg)"/></svg></span>';
 
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    if (!validate()) {
-      var firstErr = form.querySelector('.field--error') || (document.getElementById('consentErr').style.display === 'block' ? document.getElementById('consentErr') : null);
-      if (firstErr) window.scrollTo({ top: firstErr.getBoundingClientRect().top + window.pageYOffset - 120, behavior: 'smooth' });
-      return;
-    }
-
-    // TODO: wire to Formstack (medipay.formstack.com) + ActiveCampaign CRM,
-    // with referral code attached and an email fallback. Live integration to be added later.
-
+  function renderSuccess() {
     var name = document.getElementById('name').value.trim();
     var ref = document.getElementById('referral').value.trim();
 
@@ -185,6 +184,90 @@
     form.hidden = true;
     result.hidden = false;
     window.scrollTo({ top: result.getBoundingClientRect().top + window.pageYOffset - 110, behavior: 'smooth' });
+  }
+
+  function showSubmitError(btn) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit application'; }
+    var el = document.getElementById('submitError');
+    if (!el) {
+      el = document.createElement('p');
+      el.id = 'submitError';
+      el.className = 'error-msg';
+      el.style.textAlign = 'center';
+      el.style.marginTop = '12px';
+      var foot = form.querySelector('.form-foot');
+      if (foot && foot.parentNode) foot.parentNode.insertBefore(el, foot);
+      else form.appendChild(el);
+    }
+    el.style.display = 'block';
+    el.textContent = 'Sorry \u2014 we couldn\u2019t submit your application just now. Please try again in a moment.';
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // Build the JSON payload the /api/submit-apply route expects (field names
+  // mirror its applySchema; numbers may be strings, the server coerces them).
+  function collectData() {
+    var val = function (id) { var el = document.getElementById(id); return el ? el.value : ''; };
+    var mort = form.querySelector('input[name="hasMortgage"]:checked');
+    var data = {
+      name: val('name').trim(),
+      dob: val('dob'),
+      email: val('email').trim(),
+      phone: val('phone').trim(),
+      resAddress: val('resAddress').trim(),
+      propAddress: val('propAddress').trim(),
+      propState: val('propState'),
+      propValue: val('propValue'),
+      hasMortgage: mort ? mort.value : '',
+      lender: val('lender').trim(),
+      amount: val('amount'),
+      term: val('term'),
+      project: Array.prototype.map.call(form.querySelectorAll('input[name="project"]:checked'), function (c) { return c.value; }),
+      purpose: val('purpose').trim(),
+      employment: val('employment'),
+      income: val('income'),
+      expenses: val('expenses'),
+      otherDebts: val('otherDebts'),
+      idType: val('idType'),
+      idIssuedState: val('idIssuedState'),
+      idNumber: val('idNumber').trim(),
+      referral: val('referral').trim(),
+      consentPrivacy: document.getElementById('consentPrivacy').checked,
+      consentAccuracy: document.getElementById('consentAccuracy').checked,
+      utmSource: utm.source,
+      utmMedium: utm.medium,
+      utmCampaign: utm.campaign
+    };
+    var mb = val('mortBalance').trim();
+    if (mb) data.mortBalance = mb;
+    return data;
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!validate()) {
+      var firstErr = form.querySelector('.field--error') || (document.getElementById('consentErr').style.display === 'block' ? document.getElementById('consentErr') : null);
+      if (firstErr) window.scrollTo({ top: firstErr.getBoundingClientRect().top + window.pageYOffset - 120, behavior: 'smooth' });
+      return;
+    }
+
+    var btn = form.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Submitting\u2026'; }
+    var prevErr = document.getElementById('submitError');
+    if (prevErr) prevErr.style.display = 'none';
+
+    fetch('/api/submit-apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(collectData())
+    }).then(function (r) {
+      return r.json().then(function (body) { return { ok: r.ok, body: body }; }, function () { return { ok: false, body: null }; });
+    }).then(function (res) {
+      if (res.ok && res.body && res.body.ok) renderSuccess();
+      else showSubmitError(btn);
+    }).catch(function () {
+      showSubmitError(btn);
+    });
   });
 
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
