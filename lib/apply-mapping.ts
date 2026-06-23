@@ -52,6 +52,7 @@ export type ApplyInput = z.infer<typeof applySchema>;
  * ════════════════════════════════════════════════════════════════════════
  */
 export const FIELD_IDS = {
+  productName: "119531974", // text   — "Product Name" (constant "Reno Now")
   firstName: "119531979", // text     — "First name"
   lastName: "119531981", // text      — "Last name"
   dob: "119532165", // datetime       — "Date of birth"
@@ -169,6 +170,9 @@ export function buildApplyFields(data: ApplyInput): {
     if (!id) return void skipped.push(key);
     fields.push({ id, value: { address: line } });
   };
+
+  // Constant — every apply.html submission is the "Reno Now" product.
+  text(FIELD_IDS.productName, "productName", "Reno Now");
 
   // apply.html collects one "Full name"; Reno Now wants first + last.
   const parts = data.name.trim().split(/\s+/);

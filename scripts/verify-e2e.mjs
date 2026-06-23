@@ -48,6 +48,7 @@ try {
   const SUB = (f, subs) => f && subs.length && out.push({ id: id(f), value: { subvalues: subs.map((s) => ({ subvalue: s })) } }); // select/checkbox
   const ADR = (f, line) => f && out.push({ id: id(f), value: { address: line } }); // address
 
+  V(exact("Product Name"), "Reno Now"); // constant on every apply.html submission
   const [first, ...rest] = data.name.trim().split(/\s+/);
   V(exact("First name"), first);
   V(exact("Last name"), rest.join(" ") || first);
