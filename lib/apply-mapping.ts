@@ -98,30 +98,38 @@ export function buildApplyFields(data: ApplyInput): {
   const fields: FormstackFieldEntry[] = [];
   const skipped: string[] = [];
 
+  // v2025: `value` is ALWAYS a nested object. text/number/radio/datetime use
+  // { value }; select/checkbox use { subvalues }; address uses the address object.
   const text = (id: string, key: string, value: string) => {
     if (!value) return;
     if (!id) return void skipped.push(key);
-    fields.push({ id, value });
+    fields.push({ id, value: { value } });
+  };
+  // radio uses the same { value } shape as text (NOT subvalues — that's select/checkbox).
+  const radio = (id: string, key: string, value: string) => {
+    if (!value) return;
+    if (!id) return void skipped.push(key);
+    fields.push({ id, value: { value } });
   };
   const select = (id: string, key: string, value: string) => {
     if (!value) return;
     if (!id) return void skipped.push(key);
-    fields.push({ id, subvalues: [{ subvalue: value }] });
+    fields.push({ id, value: { subvalues: [{ subvalue: value }] } });
   };
   const checkboxMulti = (id: string, key: string, values: string[]) => {
     if (!values.length) return;
     if (!id) return void skipped.push(key);
-    fields.push({ id, subvalues: values.map((v) => ({ subvalue: v })) });
+    fields.push({ id, value: { subvalues: values.map((v) => ({ subvalue: v })) } });
   };
   const checkboxSingle = (id: string, key: string, label: string, on: boolean) => {
     if (!on) return;
     if (!id) return void skipped.push(key);
-    fields.push({ id, subvalues: [{ subvalue: label }] });
+    fields.push({ id, value: { subvalues: [{ subvalue: label }] } });
   };
   const address = (id: string, key: string, line: string) => {
     if (!line) return;
     if (!id) return void skipped.push(key);
-    fields.push({ id, address: line });
+    fields.push({ id, value: { address: line } });
   };
 
   // apply.html collects one "Full name"; Reno Now wants first + last.
@@ -138,7 +146,7 @@ export function buildApplyFields(data: ApplyInput): {
   address(FIELD_IDS.propertyAddress, "propertyAddress", data.propAddress);
   select(FIELD_IDS.propertyState, "propertyState", data.propState);
   text(FIELD_IDS.propertyValue, "propertyValue", String(data.propValue));
-  select(FIELD_IDS.hasMortgage, "hasMortgage", data.hasMortgage === "yes" ? "Yes" : "No");
+  radio(FIELD_IDS.hasMortgage, "hasMortgage", data.hasMortgage === "yes" ? "Yes" : "No");
   text(FIELD_IDS.existingLender, "existingLender", data.lender);
   if (data.mortBalance != null) {
     text(FIELD_IDS.mortgageBalance, "mortgageBalance", String(data.mortBalance));
@@ -147,12 +155,12 @@ export function buildApplyFields(data: ApplyInput): {
   select(FIELD_IDS.term, "term", data.term);
   checkboxMulti(FIELD_IDS.projectType, "projectType", data.project);
   text(FIELD_IDS.projectDetail, "projectDetail", data.purpose);
-  select(FIELD_IDS.employmentStatus, "employmentStatus", data.employment);
+  radio(FIELD_IDS.employmentStatus, "employmentStatus", data.employment);
   text(FIELD_IDS.grossIncome, "grossIncome", String(data.income));
   text(FIELD_IDS.monthlyExpenses, "monthlyExpenses", String(data.expenses));
   text(FIELD_IDS.otherDebtRepayments, "otherDebtRepayments", String(data.otherDebts));
   select(FIELD_IDS.idType, "idType", data.idType);
-  select(FIELD_IDS.idIssuedState, "idIssuedState", data.idIssuedState);
+  radio(FIELD_IDS.idIssuedState, "idIssuedState", data.idIssuedState);
   text(FIELD_IDS.idNumber, "idNumber", data.idNumber);
   text(FIELD_IDS.partnerCode, "partnerCode", data.referral);
   checkboxSingle(FIELD_IDS.privacyConsent, "privacyConsent", CHECKBOX_LABELS.privacyConsent, data.consentPrivacy);

@@ -1,26 +1,34 @@
 /**
  * Formstack v2025 API client (server-side only — never import into browser code).
  *
- * Mirrors the proven HSuite `submitUserFormToFormStack` pattern:
- *  - payload shape { fields: [{ id, value | subvalues | address }] }
- *  - X-FS-Encryption-Password header for encrypted forms (else they 401)
- *  - 3 attempts with exponential backoff (1s, 2s)
+ * Payload shape (verified empirically against v2025, 2026-06-23):
+ *  - { fields: [{ id, value: <object> }] } — the `value` is ALWAYS an object,
+ *    never a bare string. Sending a bare string (`value: "x"`) crashes the API
+ *    with HTTP 500 "An unexpected error has occurred."
+ *      • text/number/email/phone/radio/datetime → value: { value: "x" }
+ *      • select/checkbox (single + multi)        → value: { subvalues: [{ subvalue }] }
+ *      • address                                 → value: { address, city, state, zip }
+ *  - id MUST be a string (number → 400 "Id has to be a string").
+ *  - X-FS-Encryption-Password header for encrypted forms (else they 401).
+ *  - 3 attempts with exponential backoff (1s, 2s).
  */
 
 const FORMSTACK_API_BASE = "https://www.formstack.com/api/v2025";
 
-/** One field entry in a v2025 submission. Shape depends on the field type. */
-export type FormstackFieldEntry =
-  | { id: string; value: string }
-  | { id: string; subvalues: { subvalue: string }[] }
+/** The value object for a single field — shape depends on the field type. */
+export type FormstackFieldValue =
+  | { value: string }
+  | { subvalues: { subvalue: string }[] }
   | {
-      id: string;
       address: string;
       address2?: string;
       city?: string;
       state?: string;
       zip?: string;
     };
+
+/** One field entry in a v2025 submission: a string id + a nested value object. */
+export type FormstackFieldEntry = { id: string; value: FormstackFieldValue };
 
 export interface SubmitResult {
   success: boolean;

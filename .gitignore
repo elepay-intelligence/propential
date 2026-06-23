@@ -22,3 +22,5 @@ formstack-fields-*.txt
 Thumbs.db
 .idea/
 .vscode/
+
+.vercel
