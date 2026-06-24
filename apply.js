@@ -3,8 +3,8 @@
    Renders the multi-step form from APPLY_SCHEMA, handles
    conditional visibility, repeat blocks, per-step validation,
    the job-title combobox, address autocomplete → 5 sub-inputs,
-   localStorage autosave/restore, and front-end-only submit.
-   No network calls. Every input carries data-fs-id.
+   localStorage autosave/restore, and submit to /api/submit-apply
+   (which maps to Formstack). Every input carries data-fs-id.
    ============================================================ */
 (function () {
   var SCHEMA = window.APPLY_SCHEMA, DATA = window.APPLY_DATA;
@@ -669,13 +669,75 @@
     return true;
   }
 
+  // The repeat "Add another …" toggles and the 7 consents whose collected value
+  // is a label/verbatim string but whose backend contract is a boolean.
+  var TOGGLE_KEYS = ['addCl2', 'addCl3', 'addSrc2', 'addSrc3', 'addIp2', 'addIp3',
+    'addAsset2', 'addAsset3', 'addAsset4', 'addCard2', 'addCard3', 'addCard4', 'addCard5',
+    'addDebt2', 'addDebt3', 'addDebt4', 'addDebt5'];
+  var CONSENT_KEYS = ['consentPrivacy', 'consentConfirm', 'consentCitizen', 'consentAccuracy',
+    'consentCredit', 'consentElectronic', 'consentBiometric'];
+
+  // Normalise the schema's collected values into the exact shape the backend
+  // (/api/submit-apply → applySchema) expects. The backend owns the Formstack
+  // field-ids and exact option strings, so the design never has to.
+  function toBackendData(raw) {
+    var d = {};
+    for (var k in raw) if (Object.prototype.hasOwnProperty.call(raw, k)) d[k] = raw[k];
+    // term "5 Years" → "5" (backend maps the number → exact Formstack option label)
+    if (raw.term) { var ty = parseInt(raw.term, 10); d.term = isNaN(ty) ? '' : String(ty); }
+    // structured addresses → backend keys
+    d.resAddress = raw.resAddress_address || '';
+    d.resCity = raw.resAddress_city || '';
+    d.resState = raw.resAddress_state || '';
+    d.resPostcode = raw.resAddress_zip || '';
+    d.prevResAddress = raw.prevAddress_address || '';
+    d.propAddress = raw.propAddress_address || '';
+    d.propCity = raw.propAddress_city || '';
+    d.propState = raw.propAddress_state || '';
+    d.propPostcode = raw.propAddress_zip || '';
+    // string/label values → booleans
+    CONSENT_KEYS.forEach(function (key) { d[key] = !!raw[key]; });
+    TOGGLE_KEYS.forEach(function (key) { d[key] = !!raw[key]; });
+    return d;
+  }
+
+  function setSubmitting(on) {
+    if (!nextBtn) return;
+    nextBtn.disabled = on;
+    nextBtn.textContent = on ? 'Submitting…' : 'Submit application';
+    if (backBtn) backBtn.disabled = on;
+  }
+  function showSubmitError() {
+    setSubmitting(false);
+    var box = document.getElementById('wizSubmitError') || el('p', { class: 'submit-error', id: 'wizSubmitError', role: 'alert' });
+    box.textContent = 'Sorry, something went wrong submitting your application. Please try again — if it keeps happening, contact us and we’ll help.';
+    if (nextBtn && nextBtn.parentNode && !document.getElementById('wizSubmitError')) nextBtn.parentNode.insertBefore(box, nextBtn);
+  }
+
   function submit() {
     updateVisibility();
     if (!validateAll()) return;
-    var data = collect();
-    console.log('Propential Apply — submission (front-end only, posts nowhere):', data);
-    showSuccess(data);
-    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    var raw = collect();
+    var payload = toBackendData(raw);
+    setSubmitting(true);
+    fetch('/api/submit-apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, body: j }; });
+    }).then(function (res) {
+      if (res.ok && res.body && res.body.ok) {
+        try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+        showSuccess(raw);
+      } else {
+        console.log('[v0] submit failed', res);
+        showSubmitError();
+      }
+    }).catch(function (err) {
+      console.log('[v0] submit network error', err);
+      showSubmitError();
+    });
   }
 
   var MARK = '<span class="result-mark mark" aria-hidden="true"><svg viewBox="0 0 200 210" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="armg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ECD58C"/><stop offset="0.5" stop-color="#D6B15E"/><stop offset="1" stop-color="#B6873A"/></linearGradient></defs><path d="M34 96 L100 36 L166 96" fill="none" stroke="url(#armg)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><path d="M52 92 V162 Q52 174 64 174 H136 Q148 174 148 162 V92" fill="none" stroke="url(#armg)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><circle cx="100" cy="112" r="14" fill="url(#armg)"/><path d="M90 120 L110 120 L114 154 L86 154 Z" fill="url(#armg)"/></svg></span>';
