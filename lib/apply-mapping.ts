@@ -304,9 +304,12 @@ export const TERM_MAP: Record<string, string> = {
   "10": "10 years (over $40k only)",
 };
 
-// form "type of renovation" only has Kitchen|Bathroom|Pool|Other; the page now
-// uses those exact values, so this is effectively identity (safety net only).
-const PROJECT_FORM_OPTIONS = new Set(["Kitchen", "Bathroom", "Pool", "Other"]);
+// form "type of renovation" options (kept in sync with Formstack field 119531976).
+// The design's 8 options now all exist on the form, so this is identity for valid
+// values; any unknown value still falls back to "Other" as a safety net.
+const PROJECT_FORM_OPTIONS = new Set([
+  "Kitchen", "Bathroom", "Pool", "Interiors", "Fencing", "Landscaping", "Roofing", "Other",
+]);
 export const mapProject = (values: string[]): string[] => {
   const out = new Set<string>();
   for (const v of values) out.add(PROJECT_FORM_OPTIONS.has(v) ? v : "Other");
