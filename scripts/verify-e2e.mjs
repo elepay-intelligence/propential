@@ -30,8 +30,10 @@ const api = (p, o = {}) =>
 // ── transforms — mirror lib/apply-mapping.ts ──
 const TERM_MAP = { "1": "1 Year", "2": "2 Years", "3": "3 Years", "4": "4 Years", "5": "5 Years", "6": "6 Years", "7": "7 Years", "8": "8 years  (over $40k only)", "9": "9 years  (over $40k only)", "10": "10 years (over $40k only)" };
 const EMPLOYMENT_MAP = { "Full-time": "Full time", "Part-time": "Part time", "Casual": "Casual/Temp", "Self-employed": "Self-employed", "Retired": "Retired", "Other": "None of the above" };
-const PROJECT_OPTS = new Set(["Kitchen", "Bathroom", "Pool", "Other"]);
-const mapProject = (vs) => [...new Set(vs.map((v) => (PROJECT_OPTS.has(v) ? v : "Other")))];
+// All 8 renovation options now exist on the live form, mirroring
+// PROJECT_FORM_OPTIONS in lib/apply-mapping.ts. The page passes these through
+// as-is (no collapse-to-"Other"), so the test asserts every one is selectable.
+const PROJECT_OPTS = ["Kitchen", "Bathroom", "Pool", "Interiors", "Fencing", "Landscaping", "Roofing", "Other"];
 const PRIVACY = "Privacy Consent: By checking this box, I confirm that I have accessed RenoNow’s Privacy Policy and Credit Reporting Policy by clicking on the link shown above and reviewed, understand and consent to RenoNow, its related bodies corporate, affiliates and agents, and other nominated entities collecting, using, holding and disclosing personal information and credit-related information about me as set out in the privacy policy. If you do not consent, we may not be able to proceed with your application.";
 const DECLARE = "Yes, I declare all information that I have provided in this application is true and correct.";
 
@@ -40,7 +42,7 @@ const data = {
   name: "Jordan Test Smith", dob: "1990-01-15", email: "jordan.test@example.com", phone: "0400111222",
   resAddress: "12 Example St, Sydney NSW 2000", propAddress: "9 Reno Ave, Newcastle NSW 2300",
   propValue: "850000", mortBalance: "400000", amount: "60000", term: "8",
-  project: ["Pool", "Roofing", "Interiors"], employment: "Full-time", income: "120000",
+  employment: "Full-time", income: "120000",
   expenses: "3500", idIssuedState: "VIC", idNumber: "1234567", consentPrivacy: true, consentAccuracy: true,
   utmSource: "google", utmMedium: "cpc", utmCampaign: "reno-spring",
 };
@@ -98,7 +100,7 @@ check("number", "estimated value of your home", () => starts("What is the estima
 check("number", "amount owing on your mortgage", () => starts("What is the amount owing on your mortgage"));
 check("number", "How much money are you looking to borrow", () => starts("How much money are you looking to borrow"));
 check("select", "Choose your repayment term", () => exact("Choose your repayment term"), [TERM_MAP[data.term]]);
-check("checkbox", "What type of renovation", () => starts("What type of renovation"), mapProject(data.project));
+check("checkbox", "What type of renovation", () => starts("What type of renovation"), PROJECT_OPTS);
 check("radio", "Employment status", () => exact("Employment status"), [EMPLOYMENT_MAP[data.employment]]);
 check("number", "gross annual salary", () => starts("What is your gross annual salary"));
 check("number", "total household monthly living expenses", () => exact("What are your total household monthly living expenses?"));
