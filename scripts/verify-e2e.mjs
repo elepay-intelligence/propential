@@ -1,18 +1,31 @@
 /**
- * End-to-end proof of the apply.html → Formstack mapping. Clones the real form
- * (4653616) into a throwaway encrypted copy, takes a realistic apply.js payload,
- * runs it through the SAME mapping + value transforms as lib/apply-mapping.ts
- * (resolving field ids by label on the clone), submits, reads back decrypted,
- * reports per-field storage, then deletes the copy. Touches no live data.
- *   node scripts/verify-e2e.mjs
+ * Read-only verification of the apply.html → Formstack mapping.
+ *
+ * Creates NOTHING — no form copy, no submission, no deletion. Earlier this
+ * script cloned the live form (POST /forms/{id}/copy) and submitted to the copy
+ * to prove a round-trip; an interrupted run could leave the copy orphaned in the
+ * account. This version only GETs the live form's field DEFINITIONS (which are
+ * not encrypted) and checks that every label and option string the mapping
+ * relies on still exists, so a renamed field or edited consent wording is caught
+ * before it silently drops data in production.
+ *
+ *   node scripts/verify-e2e.mjs        # verifies FORMSTACK_FORM_ID from .env.local
+ *   node scripts/verify-e2e.mjs 12345  # verifies a specific form id instead
+ *
+ * Exit code is non-zero if any required label/option is missing.
  */
 import { config } from "dotenv";
 config({ path: ".env.local" });
+
 const token = process.env.FORMSTACK_API_TOKEN;
-const ep = process.env.FORMSTACK_USER_FORM_ENCRYPTION_PASSWORD;
+const formId = (process.argv[2] || process.env.FORMSTACK_FORM_ID || "").trim();
+if (!token || !formId) {
+  console.error("Missing FORMSTACK_API_TOKEN or FORMSTACK_FORM_ID (.env.local / CLI arg).");
+  process.exit(1);
+}
 const h = { Authorization: `Bearer ${token}`, Accept: "application/json" };
-const enc = { "X-FS-Encryption-Password": ep };
-const api = (p, o = {}) => fetch(`https://www.formstack.com/api/v2025${p}`, { ...o, headers: { ...h, ...(o.headers || {}) } });
+const api = (p, o = {}) =>
+  fetch(`https://www.formstack.com/api/v2025${p}`, { ...o, headers: { ...h, ...(o.headers || {}) } });
 
 // ── transforms — mirror lib/apply-mapping.ts ──
 const TERM_MAP = { "1": "1 Year", "2": "2 Years", "3": "3 Years", "4": "4 Years", "5": "5 Years", "6": "6 Years", "7": "7 Years", "8": "8 years  (over $40k only)", "9": "9 years  (over $40k only)", "10": "10 years (over $40k only)" };
@@ -32,69 +45,73 @@ const data = {
   utmSource: "google", utmMedium: "cpc", utmCampaign: "reno-spring",
 };
 
-const copy = await (await api("/forms/4653616/copy", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })).json();
-const CID = String(copy.id);
-console.log(`Cloned real form → copy ${CID} (encrypted=${copy.isEncrypted})`);
+// ── load live field DEFINITIONS (read-only; not encrypted) ──
+const metaRes = await api(`/forms/${formId}`);
+const metaTxt = await metaRes.text();
+if (!metaRes.ok) { console.error(`GET form failed — HTTP ${metaRes.status}: ${metaTxt}`); process.exit(1); }
+const meta = JSON.parse(metaTxt);
 
-try {
-  const fields = (await (await api(`/forms/${CID}/fields`)).json()).fields ?? [];
-  const norm = (s) => String(s ?? "").toLowerCase().replace(/\s+/g, " ").trim();
-  const exact = (label) => fields.find((f) => norm(f.label) === norm(label));
-  const starts = (s) => fields.find((f) => norm(f.label).startsWith(norm(s)));
-  const id = (f) => (f ? String(f.id) : "");
+const fieldsRes = await api(`/forms/${formId}/fields`);
+const fieldsTxt = await fieldsRes.text();
+if (!fieldsRes.ok) { console.error(`GET fields failed — HTTP ${fieldsRes.status}: ${fieldsTxt}`); process.exit(1); }
+const fields = (JSON.parse(fieldsTxt).fields) ?? [];
 
-  const out = [];
-  const V = (f, value) => f && out.push({ id: id(f), value: { value } });          // text/number/email/phone/radio/datetime
-  const SUB = (f, subs) => f && subs.length && out.push({ id: id(f), value: { subvalues: subs.map((s) => ({ subvalue: s })) } }); // select/checkbox
-  const ADR = (f, line) => f && out.push({ id: id(f), value: { address: line } }); // address
+console.log(`\nVerifying mapping against form ${meta.id}: ${meta.name}`);
+console.log(`Encrypted: ${meta.isEncrypted}   Fields: ${fields.length}   (read-only — nothing created)\n`);
 
-  V(exact("Product Name"), "Reno Now"); // constant on every apply.html submission
-  const [first, ...rest] = data.name.trim().split(/\s+/);
-  V(exact("First name"), first);
-  V(exact("Last name"), rest.join(" ") || first);
-  V(exact("Date of birth"), data.dob);
-  V(exact("Email"), data.email);
-  V(exact("Mobile"), data.phone);
-  ADR(exact("Address"), data.resAddress);
-  ADR(exact("Renovation address"), data.propAddress);
-  V(starts("What is the estimated value of your home"), data.propValue);
-  V(starts("What is the amount owing on your mortgage"), data.mortBalance);
-  V(starts("How much money are you looking to borrow"), data.amount);
-  SUB(exact("Choose your repayment term"), [TERM_MAP[data.term]]);
-  SUB(starts("What type of renovation"), mapProject(data.project));
-  V(exact("Employment status"), EMPLOYMENT_MAP[data.employment]);
-  V(starts("What is your gross annual salary"), data.income);
-  V(exact("What are your total household monthly living expenses?"), data.expenses);
-  V(exact("Driver's license state"), data.idIssuedState);
-  V(exact("Driver's license number"), data.idNumber);
-  SUB(starts("You must review and agree to our Privacy"), data.consentPrivacy ? [PRIVACY] : []);
-  SUB(starts("Do you declare all the information"), data.consentAccuracy ? [DECLARE] : []);
-  V(exact("Campaign Source"), data.utmSource);
-  V(exact("Campaign Medium"), data.utmMedium);
-  V(exact("Campaign Name"), data.utmCampaign);
+// ── resolution helpers (match lib/apply-mapping.ts label expectations) ──
+const norm = (s) => String(s ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+const exact = (label) => fields.find((f) => norm(f.label) === norm(label));
+const starts = (s) => fields.find((f) => norm(f.label).startsWith(norm(s)));
+const optionLabels = (f) =>
+  Array.isArray(f?.options) ? f.options.map((o) => (o && typeof o === "object" ? (o.label ?? o.value ?? "") : o)) : [];
 
-  console.log(`Submitting ${out.length} mapped fields…\n`);
-  const res = await api(`/forms/${CID}/submissions`, { method: "POST", headers: { "Content-Type": "application/json", ...enc }, body: JSON.stringify({ fields: out }) });
-  const txt = await res.text();
-  console.log(`POST → HTTP ${res.status} ${res.ok ? "ACCEPTED" : "REJECTED"}`);
-  const j = JSON.parse(txt);
-  if (j.id) {
-    const sb = await (await api(`/submissions/${j.id}`, { headers: enc })).json();
-    const stored = new Map((sb.data ?? []).map((d) => [String(d.field), d]));
-    let ok = 0;
-    console.log(`\nPer-field result (${out.length} sent):`);
-    for (const e of out) {
-      const d = stored.get(e.id);
-      const has = d && d.displayValue !== "" && d.displayValue != null;
-      if (has) ok++;
-      const label = fields.find((f) => String(f.id) === e.id)?.label ?? e.id;
-      console.log(`  ${has ? "✓" : "✗"} ${String(label).slice(0, 38).padEnd(38)} ${has ? JSON.stringify(String(d.displayValue).slice(0, 40).replace(/\n/g, " | ")) : "(NOT STORED)"}`);
+let pass = 0, fail = 0;
+const rows = [];
+
+/** Check a field exists for `label`; for option fields, that each `opts` value is selectable. */
+function check(kind, label, finder, opts = []) {
+  const f = finder();
+  if (!f) { rows.push(["✗", kind, label, "FIELD NOT FOUND"]); fail++; return; }
+  if (opts.length) {
+    const have = optionLabels(f).map(norm);
+    const missing = opts.filter((o) => o && !have.includes(norm(o)));
+    if (missing.length) {
+      rows.push(["✗", kind, `${label} → ${f.id}`, `OPTION MISSING: ${missing.map((m) => JSON.stringify(m)).join(", ")}`]);
+      fail++; return;
     }
-    console.log(`\n${ok}/${out.length} fields stored.`);
-  } else {
-    console.log("Body:", txt.slice(0, 300));
   }
-} finally {
-  const del = await api(`/forms/${CID}`, { method: "DELETE" });
-  console.log(`\nDeleted copy ${CID} → HTTP ${del.status}`);
+  rows.push(["✓", kind, `${label} → ${f.id}`, opts.length ? `${opts.length} option(s) ok` : "field present"]);
+  pass++;
 }
+
+// ── every field apply.js maps, in lib/apply-mapping.ts order ──
+check("text", "Product Name", () => exact("Product Name"));
+check("text", "First name", () => exact("First name"));
+check("text", "Last name", () => exact("Last name"));
+check("datetime", "Date of birth", () => exact("Date of birth"));
+check("email", "Email", () => exact("Email"));
+check("phone", "Mobile", () => exact("Mobile"));
+check("address", "Address", () => exact("Address"));
+check("address", "Renovation address", () => exact("Renovation address"));
+check("number", "estimated value of your home", () => starts("What is the estimated value of your home"));
+check("number", "amount owing on your mortgage", () => starts("What is the amount owing on your mortgage"));
+check("number", "How much money are you looking to borrow", () => starts("How much money are you looking to borrow"));
+check("select", "Choose your repayment term", () => exact("Choose your repayment term"), [TERM_MAP[data.term]]);
+check("checkbox", "What type of renovation", () => starts("What type of renovation"), mapProject(data.project));
+check("radio", "Employment status", () => exact("Employment status"), [EMPLOYMENT_MAP[data.employment]]);
+check("number", "gross annual salary", () => starts("What is your gross annual salary"));
+check("number", "total household monthly living expenses", () => exact("What are your total household monthly living expenses?"));
+check("radio", "Driver's license state", () => exact("Driver's license state"), [data.idIssuedState]);
+check("text", "Driver's license number", () => exact("Driver's license number"));
+check("checkbox", "Privacy Consent", () => starts("You must review and agree to our Privacy"), [PRIVACY]);
+check("checkbox", "Accuracy declaration", () => starts("Do you declare all the information"), [DECLARE]);
+check("text", "Campaign Source", () => exact("Campaign Source"));
+check("text", "Campaign Medium", () => exact("Campaign Medium"));
+check("text", "Campaign Name", () => exact("Campaign Name"));
+
+for (const [mark, kind, label, note] of rows) {
+  console.log(`  ${mark} ${String(kind).padEnd(9)} ${String(label).slice(0, 52).padEnd(52)} ${note}`);
+}
+console.log(`\n${pass}/${pass + fail} mapped fields verified.${fail ? `  ${fail} need attention.` : ""}\n`);
+process.exit(fail ? 1 : 0);
