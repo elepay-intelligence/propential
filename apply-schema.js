@@ -50,7 +50,10 @@
         { t: 'tel', v: 'phone', fs: '119531983', l: 'Mobile', req: true, kind: 'auMobile', w: 4, ac: 'tel', ph: '04xx xxx xxx', hint: 'We’ll send you important notifications via SMS.' },
         { t: 'radio', v: 'joint', fs: '119531988', l: 'Is this a joint application?', o: NOYES, req: true, hint: 'The co-borrower must derive substantial benefit from the use of the loan funds. In most cases, the co-borrower will be your spouse or de facto partner, living with you at the property and/or being co-owner of the property.' },
         { t: 'text', v: 'jointName', fs: '119531989', l: "What's their name?", req: true, show: [{ f: 'joint', eq: 'Yes' }], ph: 'Their full name', hint: 'Enter their full name here.' },
-        { t: 'email', v: 'jointEmail', fs: '119531990', l: 'Enter their email', req: true, kind: 'email', ph: 'their@email.com', show: [{ f: 'joint', eq: 'Yes' }], hint: "You are required to insert their email to complete the application. We'll send them an email with a link to complete the application once you submit this form. If your co-applicant has already completed an application please insert their email address so we can attach your application to theirs as a joint application." }
+        { t: 'email', v: 'jointEmail', fs: '119531990', l: 'Enter their email', req: true, kind: 'email', ph: 'their@email.com', show: [{ f: 'joint', eq: 'Yes' }], hint: "You are required to insert their email to complete the application. We'll send them an email with a link to complete the application once you submit this form. If your co-applicant has already completed an application please insert their email address so we can attach your application to theirs as a joint application." },
+        // Optional. fs stays '' until the "Referral Code" field exists on form
+        // 4653616 — the backend owns the real id (FIELD_IDS.referral).
+        { t: 'text', v: 'referral', fs: '', l: 'Referral Code', half: true, ac: 'off', ph: 'e.g. STYLIST-042' }
       ]
     },
     {

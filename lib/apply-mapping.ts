@@ -31,6 +31,7 @@ export const applySchema = z.object({
   joint: optStr,
   jointName: optStr,
   jointEmail: optStr,
+  referral: optStr,
   // employment
   employment: z.string().trim().min(1),
   employmentDetail: optStr,
@@ -163,6 +164,11 @@ export const FIELD_IDS = {
   joint: "119531988",          // radio No|Yes
   jointName: "119531989",
   jointEmail: "119531990",
+  // ⚠ Paste the id here once the "Referral Code" text field exists on form
+  // 4653616 (verified absent 2026-08-07, 228 fields). While it is "" the code
+  // is still collected and saved to Neon, and buildApplyFields logs it as
+  // skipped — the Formstack payload stays byte-identical to today.
+  referral: "",
   // employment
   employmentStatus: "119531993",   // radio
   employmentDetail: "119531994",
@@ -396,6 +402,7 @@ export function buildApplyFields(data: ApplyInput): {
   radio(F.joint, "joint", data.joint);
   text(F.jointName, "jointName", data.jointName);
   text(F.jointEmail, "jointEmail", data.jointEmail);
+  text(F.referral, "referral", data.referral);
 
   // employment
   radio(F.employmentStatus, "employmentStatus", data.employment);

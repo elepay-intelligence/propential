@@ -46,7 +46,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         formstackFormId: formId,
         status: "received",
         email: data.email,
-        referralCode: null,
+        referralCode: data.referral || null,
         utmSource: data.utmSource || null,
         utmMedium: data.utmMedium || null,
         utmCampaign: data.utmCampaign || null,
