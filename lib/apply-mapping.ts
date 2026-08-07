@@ -9,10 +9,24 @@ import type { FormstackFieldEntry } from "./formstack.js";
  * route never 400s on an otherwise-complete lead.
  */
 const optStr = z.string().trim().optional().default("");
-const optNum = z
-  .union([z.coerce.number(), z.literal("")])
-  .optional()
-  .transform((v) => (v === "" || v == null ? undefined : Number(v)));
+/**
+ * An unanswered number field must stay UNANSWERED, never become 0.
+ *
+ * The previous `z.union([z.coerce.number(), z.literal("")])` looked like it
+ * handled this, but z.union tries branches in order and Number("") === 0, so ""
+ * matched z.coerce.number() as 0 and z.literal("") was never reached. Every
+ * untouched money field then posted a literal "0" to Formstack — an assessor
+ * could not tell "answered zero" from "never asked" (e.g. "Source 1 monthly
+ * amount: A$0" on an application that said No to other income).
+ *
+ * Blank-ish input is stripped to undefined BEFORE coercion, so it is dropped
+ * from the payload entirely. A deliberately typed 0 still parses to 0 and still
+ * posts — the two cases stay distinguishable.
+ */
+const optNum = z.preprocess(
+  (v) => (v == null || (typeof v === "string" && v.trim() === "") ? undefined : v),
+  z.coerce.number().optional(),
+);
 const optBool = z.coerce.boolean().optional().default(false);
 
 export const applySchema = z.object({
