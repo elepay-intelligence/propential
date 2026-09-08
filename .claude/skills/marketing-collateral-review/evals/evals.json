@@ -1,0 +1,23 @@
+{
+  "skill_name": "marketing-collateral-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Here's the A5 flyer we want to put on the partner media hub for builders to hand to homeowners. Dark background, gold headline 'Renovate now, repay over years', a photo of a kitchen, three bullet points about the loan, the rate, a QR code in the corner and our web address. Can you review it before it goes up?",
+      "expected_output": "A review in the SKILL.md report format: verdict first; intake stating format (A5), reader (customer), channel (office print assumed) and assumptions; findings across all ten lenses with severities; a Blocker or Major on the dark full-bleed ground being the only print file (no ivory variant) and on QR size/contrast if the code is gold on dark; brand alignment against propential-brand.md; scorecard; no legal/compliance findings beyond a one-line 'worth a compliance look'.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Attached is a 1080x1080 Instagram tile for Propential. Headline in gold script font, small white body text, 'Learn more' button graphic, logo bottom right. Does this work?",
+      "expected_output": "Review that flags a fourth typeface (script) as off-brand against the three-family rule, checks body size against the 36 px minimum for a 1080 tile with the scale arithmetic shown, flags 'Learn more' as a generic CTA versus the site's verb CTAs, checks the logo treatment, and states what could not be measured from a flat image.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "We made a one-page 'How to refer a customer' sheet for partner office staff. It's A4, white background, lots of steps, Propential logo top left, our phone number, and it mentions the customer flyer too. Review please.",
+      "expected_output": "Review that identifies the reader as partner office, allows density but checks scannability and mono-print legibility, checks for a version/date footer and hub file naming, flags any mixing of customer-facing content, checks the partner attribution link mechanic (ref code) is explained, and scores the lenses.",
+      "files": []
+    }
+  ]
+}
