@@ -1,0 +1,16 @@
+<svg viewBox="0 0 600 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Propential">
+  <defs>
+    
+    <linearGradient id="pgold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ECD58C"></stop>
+      <stop offset="0.5" stop-color="#D6B15E"></stop>
+      <stop offset="1" stop-color="#B6873A"></stop>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0,14) scale(0.57)">
+    <path d="M34 96 L100 36 L166 96" fill="none" stroke="url(#pgold)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></path>
+    <path d="M52 92 V162 Q52 174 64 174 H136 Q148 174 148 162 V92" fill="none" stroke="url(#pgold)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></path>
+    <path d="M111.49 120 A14 14 0 1 0 88.51 120 L86 154 L114 154 Z" fill="url(#pgold)"></path>
+  </g>
+  <text x="132" y="103" font-family="Fraunces, Georgia, &#39;Times New Roman&#39;, serif" font-size="76" font-weight="400"><tspan fill="#1B1C16">Prop</tspan><tspan fill="#B6873A" font-style="italic">ential</tspan></text>
+</svg>

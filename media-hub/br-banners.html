@@ -1,0 +1,64 @@
+<!DOCTYPE html><html lang="en-AU"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Propential | Digital banners (mortgage &amp; real estate)</title><link rel="stylesheet" href="banners.css"></head><body>
+<header class="pagehead"><div class="wrap">
+  <span class="eyebrow">Mortgage &amp; real estate partners</span>
+  <h1>Digital banners</h1>
+  <p>Nine sizes covering email signatures, your website and social. Every banner links to propential.com.au; the static placements carry a QR code instead. Do not crop the banners or remove the credit disclosure.</p>
+</div></header>
+
+<section class="grp" id="sig"><div class="wrap">
+  <h2>Email signature</h2>
+  <p>Add below your sign-off. Insert as an image and set the hyperlink to https://propential.com.au, or paste the HTML snippet if your mail client accepts one.</p>
+  <div class="items" data-group="sig"></div>
+</div></section>
+
+<section class="grp" id="web"><div class="wrap">
+  <h2>Website</h2>
+  <p>Page footers, finance and services pages, and sidebars. The 300&times;600 tower carries a QR code so it also works in print or on a screen a visitor cannot click.</p>
+  <div class="items" data-group="web"></div>
+</div></section>
+
+<section class="grp" id="social"><div class="wrap">
+  <h2>Social</h2>
+  <p>Square post, link-preview landscape and a full-height story. Put the propential.com.au link in the caption or the story link sticker; the QR covers screenshots and re-shares.</p>
+  <div class="items" data-group="social"></div>
+</div></section>
+
+<footer class="grp"><div class="wrap">
+  <p style="font-size:.78rem;color:var(--text-faint);line-height:1.55">Credit provided by MediPay Holdings Pty Ltd ACL 474336. Subject to lending criteria. General information only. Partners must not alter the wording, figures or the credit disclosure on any banner.</p>
+</div></footer>
+
+<script>
+window.BANNERS = {
+  
+  photos: { strip: '../assets/v3/kitchen-wide.jpg', wide: '../assets/v3/terrace-wide.jpg', tower: '../assets/v3/why-garden.jpg', square: '../assets/v3/why-terrace.jpg', story: '../assets/v3/why-sunset.jpg' },
+  copy: {
+    kick: 'Property-secured finance',
+    head: 'The renovation that <em>pays for itself.</em>',
+    headShort: 'Renovate now. <em>Refinance later.</em>',
+    pts: [['$5K&ndash;$175K'],['up to 7 yrs on loans to $50K, up to 10 yrs on $50,001&ndash;$175K'],['No early exit fees']],
+    stats: [['$5K&ndash;$175K','secured by caveat against your property (second mortgage in QLD and NT)'],['Up to 10 yrs','up to 7 yrs to $50K, up to 10 yrs on $50,001&ndash;$175K &middot; repay any time'],['$0','early-exit fees']],
+    cta: 'See what you could borrow'
+  },
+  groups: [
+    { id: 'sig', items: [
+      { size: '600x160', title: 'Signature banner: standard', note: 'Outlook and Gmail. The default choice.' },
+      { size: '600x100', title: 'Signature banner: slim', note: 'For signatures that already run long.' },
+      { size: '468x120', title: 'Signature banner: compact', note: 'Narrow templates and mobile-first signatures.' }
+    ]},
+    { id: 'web', items: [
+      { size: '1200x250', title: 'Footer strip', note: 'Full-width footer or a finance page banner.' },
+      { size: '970x250', title: 'Billboard', note: 'In-page placement above the fold.' },
+      { size: '300x600', title: 'Half-page tower', note: 'Sidebar. Carries a QR code.' }
+    ]},
+    { id: 'social', items: [
+      { size: '1080x1080', title: 'Square post', note: 'Instagram, Facebook, LinkedIn.' },
+      { size: '1200x628', title: 'Link preview', note: 'Shared links and LinkedIn articles.' },
+      { size: '1080x1920', title: 'Story / Reel cover', note: 'Instagram and Facebook stories.' }
+    ]}
+  ]
+};
+</script>
+<script src="banners.js"></script>
+<script>if(new URLSearchParams(location.search).has('print')){addEventListener('load',function(){setTimeout(function(){window.print()},600)})}</script>
+</body></html>

@@ -1,0 +1,30 @@
+/* Propential — media hub explainer page additions */
+.doc{padding:20px 0 70px}
+.doc__grid{display:grid;grid-template-columns:230px 1fr;gap:56px;align-items:start}
+.toc{position:sticky;top:98px;border-left:1px solid var(--line-soft);padding-left:20px;display:flex;flex-direction:column;gap:11px}
+.toc a{color:var(--text-muted);font-size:.84rem;line-height:1.35}
+.toc a:hover{color:var(--ivory)}
+.blk{padding-bottom:44px;margin-bottom:44px;border-bottom:1px solid var(--line-soft)}
+.blk:last-child{border-bottom:0;margin-bottom:0}
+.blk h2{font-size:1.75rem;margin-bottom:16px}
+.blk h3{font-size:1.08rem;margin:26px 0 10px}
+.blk p{color:var(--text-muted);font-size:.95rem;line-height:1.6;margin-bottom:12px}
+.hero h1,.hero .lede{max-width:none}
+.blk ul{list-style:none;display:flex;flex-direction:column;gap:11px;margin:14px 0 4px}
+.blk ul li{display:grid;grid-template-columns:18px 1fr;font-size:.93rem;line-height:1.55;color:var(--text-muted)}
+.blk ul li::before{content:"";width:6px;height:6px;border-radius:2px;background:var(--gold-grad);margin-top:8px}
+.blk ul li b,.blk p b{color:var(--ivory);font-weight:600}
+.tbl{width:100%;border-collapse:collapse;margin-top:18px}
+.tbl th,.tbl td{text-align:left;padding:14px 16px 14px 0;border-bottom:1px solid var(--line-soft);font-size:.9rem;line-height:1.5;vertical-align:top}
+.tbl th{color:var(--champagne);font-weight:600;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;border-bottom-color:var(--line)}
+.tbl td:first-child{color:var(--ivory);width:38%;padding-right:28px}
+.tbl td:last-child{color:var(--text-muted)}
+.tbl a{white-space:nowrap}
+.callout{border:1px solid var(--line);border-left:2px solid var(--champagne);border-radius:12px;background:rgba(214,177,94,.05);padding:20px 22px;margin:20px 0}
+.callout p{margin:0;color:var(--text-muted);font-size:.9rem}
+.callout p+p{margin-top:10px}
+.callout b{color:var(--ivory)}
+.dont{border-color:rgba(201,96,63,.5);border-left-color:#C9603F;background:rgba(201,96,63,.06)}
+.codeline{font-family:var(--mono);font-size:.86rem;color:var(--ivory);background:rgba(0,0,0,.4);border:1px solid var(--line-soft);border-radius:10px;padding:13px 16px;margin:14px 0;word-break:break-all}
+.codeline .ref{color:var(--champagne)}
+@media(max-width:900px){.doc__grid{grid-template-columns:1fr;gap:28px}.toc{position:static;flex-direction:row;flex-wrap:wrap;gap:16px;border-left:0;border-top:1px solid var(--line-soft);padding:16px 0 0}}
