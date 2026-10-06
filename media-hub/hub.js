@@ -79,6 +79,16 @@
       setTimeout(function () { URL.revokeObjectURL(u); }, 60000);
       return;
     }
+    /* Outside a single-file bundle the sibling file is a real, fetchable
+       path, so just open it directly. The iframe-clone fallback below is
+       bundle-only: it re-serves the card thumbnail's live DOM as a blob,
+       and a blob: URL has no base path of its own, so every relative
+       stylesheet/script/image reference inside that cloned document
+       breaks - exactly what was happening here before this guard. */
+    if (!Object.keys(INLINE).length) {
+      window.open(a.view, '_blank', 'noopener');
+      return;
+    }
     var frame = document.querySelector('.card[data-id="' + id + '"] iframe') ||
       (modal.classList.contains('is-open') ? mFrame : null);
     try {
@@ -192,7 +202,29 @@
       '       style="display:block;border:0;max-width:100%;height:auto">\n</a>';
     navigator.clipboard.writeText(html).then(function () { say('Email signature HTML copied to your clipboard.'); });
   }
-  function loadFrame(f, view) { if (INLINE[view]) f.srcdoc = INLINE[view]; else f.src = view; }
+  /* The pitch decks and the partner pack run their own init script, which
+     calls scrollIntoView() on load to highlight the active slide in their
+     own nav rail. Per spec that escapes across the iframe boundary and
+     drags this HOST page's own scroll position along with it - a
+     decorative card preview has no business moving the hub's scroll.
+     A patch applied after the iframe's 'load' event is too late: that
+     script runs synchronously while the document is still parsing. The
+     only reliable fix is to fetch the page ourselves and prepend a guard
+     script, so it executes first in document order, before anything the
+     deck itself does. Scoped to '../share/' (decks and the pack) only -
+     the only pages that exhibit this - so every other card keeps loading
+     via a plain src= navigation. */
+  var SCROLL_GUARD = '<script>(function(){var n=function(){};window.scrollTo=n;window.scroll=n;if(window.Element)Element.prototype.scrollIntoView=n;})();<\/script>';
+  function loadFrame(f, view) {
+    if (INLINE[view]) { f.srcdoc = INLINE[view]; return; }
+    if (view.indexOf('../share/') === 0) {
+      fetch(view).then(function (r) { return r.text(); }).then(function (html) {
+        f.srcdoc = SCROLL_GUARD + html;
+      }).catch(function () { f.src = view; });
+      return;
+    }
+    f.src = view;
+  }
   host.querySelectorAll('iframe[data-view]').forEach(function (f) { loadFrame(f, f.dataset.view); });
 
   /* ---------- jump nav ---------- */
