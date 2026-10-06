@@ -20,7 +20,7 @@ p{text-wrap:pretty}
 .mute{color:var(--text-muted)}
 .page.light .mute{color:var(--paper-mute)}
 /* header lockup */
-.lockup{display:flex;align-items:center;gap:9px}
+.lockup{display:flex;align-items:center;gap:9px;text-decoration:none}
 .lockup svg{display:block}
 .wm{font-family:var(--font-display);font-size:19pt;line-height:1.2;letter-spacing:-.01em}
 .wm b{font-weight:400}
