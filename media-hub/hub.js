@@ -147,7 +147,7 @@
         '<button class="linkbtn" data-png="' + key + '">PNG</button>' +
         (a.snippet ? '<button class="linkbtn" data-snip="' + key + '">HTML</button>' : '') + '</div>';
     }).join('');
-    return '<article class="card" data-id="' + id + '" data-search="' + esc((a.title + ' ' + a.desc + ' ' + a.use + ' ' + (a.specs || []).join(' ')).toLowerCase()) + '">' +
+    return '<article class="card" data-id="' + id + '">' +
       '<label class="pick"><input type="checkbox" data-pick="' + id + '" aria-label="Select ' + esc(a.title) + '">Select</label>' +
       '<div class="thumb thumb--' + (a.shape || 'port') + '" data-open="' + id + '" data-nat="' + nat[0] + ',' + nat[1] + '" role="button" tabindex="0" aria-label="Preview ' + esc(a.title) + '">' +
         (a.badge ? '<span class="badge">' + a.badge + '</span>' : '') +
@@ -177,7 +177,7 @@
       '<h2>' + sec.title + '</h2><p>' + sec.blurb + '</p></div></div>' +
       '<div class="assets' + (sec.items.length === 1 ? ' assets--solo' : sec.items.length === 2 ? ' assets--2' : '') + '">' +
         sec.items.map(function (a, ii) { return card(a, si, ii); }).join('') +
-      '</div><p class="empty" hidden><b>No matches here</b>Try a different word, or clear the search.</p></div></section>';
+      '</div></div></section>';
   }).join('');
 
   function item(id) { var p = id.split('.'); return sections[+p[0]].items[+p[1]]; }
@@ -249,27 +249,10 @@
   }
   window.addEventListener('scroll', spy, { passive: true }); spy();
 
-  /* ---------- search ---------- */
-  var input = document.getElementById('hub-search');
+  /* ---------- item count ---------- */
   var countEl = document.getElementById('hub-count');
   var allCards = [].slice.call(host.querySelectorAll('.card'));
-  function filter() {
-    var q = (input ? input.value : '').trim().toLowerCase(), shown = 0;
-    allCards.forEach(function (c) { var hit = !q || c.dataset.search.indexOf(q) > -1; c.hidden = !hit; if (hit) shown++; });
-    host.querySelectorAll('.sec').forEach(function (s) {
-      var vis = s.querySelectorAll('.card:not([hidden])').length;
-      s.querySelector('.empty').hidden = vis > 0;
-      s.querySelector('.assets').style.display = vis ? '' : 'none';
-    });
-    if (countEl) countEl.textContent = shown + ' of ' + allCards.length + ' items';
-    if (input) input.parentElement.classList.toggle('has-val', !!q);
-  }
-  if (input) {
-    input.addEventListener('input', filter);
-    var clear = input.parentElement.querySelector('.clear');
-    if (clear) clear.addEventListener('click', function () { input.value = ''; filter(); input.focus(); });
-  }
-  filter();
+  if (countEl) countEl.textContent = allCards.length + ' of ' + allCards.length + ' items';
 
   /* ---------- multi-select ---------- */
   var picked = new Set();
