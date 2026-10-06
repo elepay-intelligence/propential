@@ -7,7 +7,11 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/media-hub/broker", "destination": "/media-hub/index-broker.html" },
-    { "source": "/media-hub/non-broker", "destination": "/media-hub/index-partner.html" }
+    { "source": "/media-hub/trade-services", "destination": "/media-hub/index-partner.html" },
+    { "source": "/media-hub/how-to-trade-partner", "destination": "/media-hub/how-to-partner.html" }
+  ],
+  "redirects": [
+    { "source": "/media-hub/non-broker", "destination": "/media-hub/trade-services", "permanent": true }
   ],
   "headers": [
     {
