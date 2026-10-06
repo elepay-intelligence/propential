@@ -12,8 +12,7 @@
     '<defs><linearGradient id="pnavg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ECD58C"/><stop offset="0.5" stop-color="#D6B15E"/><stop offset="1" stop-color="#B6873A"/></linearGradient></defs>' +
     '<path d="M34 96 L100 36 L166 96" fill="none" stroke="url(#pnavg)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>' +
     '<path d="M52 92 V162 Q52 174 64 174 H136 Q148 174 148 162 V92" fill="none" stroke="url(#pnavg)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>' +
-    '<circle cx="100" cy="112" r="14" fill="url(#pnavg)"/>' +
-    '<path d="M90 120 L110 120 L114 154 L86 154 Z" fill="url(#pnavg)"/>' +
+    '<path d="M111.49 120 A14 14 0 1 0 88.51 120 L86 154 L114 154 Z" fill="url(#pnavg)"/>' +
     '</svg></span>';
 
   function a(href, label, key) {

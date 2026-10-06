@@ -5,6 +5,10 @@
   "outputDirectory": ".",
   "cleanUrls": false,
   "trailingSlash": false,
+  "rewrites": [
+    { "source": "/media-hub/broker", "destination": "/media-hub/index-broker.html" },
+    { "source": "/media-hub/non-broker", "destination": "/media-hub/index-partner.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
